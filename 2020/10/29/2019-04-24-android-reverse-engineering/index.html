@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="点进来在告诉你~">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Dalvik 虚拟机 - Android逆向">
+<meta property="og:url" content="http://example.com/2020/10/29/2019-04-24-android-reverse-engineering/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="点进来在告诉你~">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2020-10-29T12:36:29.773Z">
+<meta property="article:modified_time" content="2020-10-29T12:36:29.773Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="Android 非虫 逆向 Dalvik">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2020/10/29/2019-04-24-android-reverse-engineering/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Dalvik 虚拟机 - Android逆向 | Hexo</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Hexo</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2020/10/29/2019-04-24-android-reverse-engineering/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="John Doe">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Dalvik 虚拟机 - Android逆向
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2020-10-29 12:36:29" itemprop="dateCreated datePublished" datetime="2020-10-29T12:36:29+00:00">2020-10-29</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index"><span itemprop="name">Android</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h3 id="Dalvik-虚拟机-Android逆向"><a href="#Dalvik-虚拟机-Android逆向" class="headerlink" title="Dalvik 虚拟机 - Android逆向"></a>Dalvik 虚拟机 - Android逆向</h3><p>&emsp;&emsp;Android 使用 Java语言开发应用程序，但是 Andorid 程序不是运行在标准的 Java 的虚拟机上的。</p>
+<hr>
+<h4 id="1、Dalvik-虚拟机的特点"><a href="#1、Dalvik-虚拟机的特点" class="headerlink" title="1、Dalvik 虚拟机的特点"></a>1、Dalvik 虚拟机的特点</h4><p>Dalvik 虚拟机是 Android 平台的核心组件</p>
+<ul>
+<li>体积小，占用内存空间少。</li>
+<li>专有的 DEX (Dalvik Executable) 可执行文件格式，体积小，执行速度快。</li>
+<li>常量池才用 32 位索引值，对类方法名、字段名、常量的寻址速度快。</li>
+<li>基于寄存器架构，同时拥有一套完整的指令系统。</li>
+<li>提供了对象生命周期管理、堆栈管理、线程管理、安全和异常管理及垃圾回收等重要功能</li>
+<li><strong>所有的 Android 程序都运行在 Android 系统进程中，每个进程都与一个 Dalvik 虚拟机实例对应。</strong></li>
+</ul>
+<h4 id="2、Java-转-Dalvik"><a href="#2、Java-转-Dalvik" class="headerlink" title="2、Java 转 Dalvik"></a>2、Java 转 Dalvik</h4><p>Java class 转换 Dalvik dex 是通过 &lt;Android SDK 安装目录&gt;\build-tools\xx.x.x 目录下 的 dx 工具实现的。dx 能够重新排列 Java 类文件，消除在类文件中出现的所有冗余信息。</p>
+<h4 id="3、Dalvik-指令格式"><a href="#3、Dalvik-指令格式" class="headerlink" title="3、Dalvik 指令格式"></a>3、Dalvik 指令格式</h4><p>一段 Dalvik 汇编代码由一系列 Dalvik 指令组成，指令语法由指令的位描述和指令格式标识决定。位描述约定如下。</p>
+<ul>
+<li>每 16 位的字用空格分开</li>
+<li>每个字母表示 4 位，每个字母按顺序从高字节到低字节排列，每 4 位之间可能使用竖线 “|“ 将不同的内容分开。</li>
+<li>顺序才用英文大写字母 A ~ Z 表示 4 位的操作码。op 表示 8 位的操作码。</li>
+<li>∅ 表示字段所有位的值为 0。</li>
+</ul>
+<p>&emsp;&emsp;以指令格式 “A|G|op BBBB F|E|D|C” 为例进行分析。两个空格将这条指令分成了大小均为 16 位的三部分，因此，这条指令由三个 16 位的字组成。第 1 个 16 位部分是 “A|G|op”，其高 8 位由 “A” 和 “G” 组成，低字节则由操作码 “op” 组成。第 2 个 16 位部分由 “BBBB” 组成，标识一个 16 位的偏移量。第 3 个 16 位部分由 “F” “E” “D” “C” 四个 4 字节组成，它们分别表示寄存器的参数。<br>&emsp;&emsp;单独使用位标识是无法确定一条指令的，必须通过指令格式标识来指令的格式编码，约定如下。</p>
+<ul>
+<li>指令格式标识大都由三个字符组成。其中，前两个是数字，最后一个是字母。</li>
+<li>第 1 个数字表示指令是由多少个 16 位的字组成的。</li>
+<li>第 2 个数字标识指令最多使用的寄存器的格式。特殊标记 r 用于标识所使用的寄存器的范围。</li>
+<li>第 3 个字母为类型码，表示指令所使用的额外数据的类型。</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th align="center">助记符</th>
+<th>位大小</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">b</td>
+<td>8</td>
+<td>8位有符号立即数</td>
+</tr>
+<tr>
+<td align="center">c</td>
+<td>16, 32</td>
+<td>常量池索引</td>
+</tr>
+<tr>
+<td align="center">f</td>
+<td>16</td>
+<td>接口常量（仅对静态链接格式有效）</td>
+</tr>
+<tr>
+<td align="center">h</td>
+<td>16</td>
+<td>有符号立即数（ 32 位或 64 位）</td>
+</tr>
+<tr>
+<td align="center">i</td>
+<td>32</td>
+<td>立即数，有符号整数或 32 位浮点数</td>
+</tr>
+<tr>
+<td align="center">l</td>
+<td>64</td>
+<td>立即数，有符号整数或 64 位双精度浮点数</td>
+</tr>
+<tr>
+<td align="center">m</td>
+<td>16</td>
+<td>方法常量（仅对静态链接格式有效）</td>
+</tr>
+<tr>
+<td align="center">n</td>
+<td>4</td>
+<td>4 位立即数</td>
+</tr>
+<tr>
+<td align="center">s</td>
+<td>16</td>
+<td>短整型立即数</td>
+</tr>
+<tr>
+<td align="center">t</td>
+<td>8, 16, 32</td>
+<td>跳转，分支</td>
+</tr>
+<tr>
+<td align="center">x</td>
+<td>0</td>
+<td>无额外数据</td>
+</tr>
+</tbody></table>
+<p>&emsp;&emsp;一种特殊的情况是指令的末尾多出一个字母。如果字母是 s ，表示指令才用静态链接；如果是字母 i ，表示指令应该被内联处理。<br>&emsp;&emsp;以指令格式标识 “22x” 为例，第 1 个数字 2 表示指令由两个 16 位字组成，第 2 个数字 2 表示指令使用两个寄存器，字母 x 表示没有使用额外的数据。<br>&emsp;&emsp;Dalvik 指令对语法进行了一些说明，约定如下。</p>
+<ul>
+<li>每条指令都是从操作码开始的，后面紧跟参数。参数的个数不定，参数之间用逗号分隔。</li>
+<li>每条指令的参数都是从指令的第一部分开始的。op 位低 8 位。高 8 位可以是一个 8 位的参数，也可以是两个 4 位的参数，还可以为空。如果指令超过 16 位，则将之后的部分依次作为参数。</li>
+<li>如果参数采用 “vX” 的形式表示，说明它是一个寄存器，例如 v0、v1 等。这里用 “v” 而不用 “r” 的目的是避免与基于该虚拟机架构本身的寄存器产生命名冲突（例如，ARM 架构的寄存器名称以 “r” 开头）</li>
+<li>如果参数采用 “#+X” 的形式表示，说明它是一个常量数字。</li>
+<li>如果参数采用 “+X”  的形式表示，说明它是一个相对指令的地址偏移量。</li>
+<li>如果参数采用 “kind@X” 的形式表示，说明它是一个常量池索引值。其中，“kind” 表示常量池的类型，可以是 string （字符串常量池索引）、 type （类型常量池索引）、 field （字段常量池索引）或者 meth （方法常量池索引）。</li>
+</ul>
+<p>&emsp;&emsp;以指令 op vAA, string@BBBB 为例，该指令使用了一个寄存器参数 vAA ，附加了一个字符串常量池索引值 string@BBBB。其实，这种指令格式代表 const-string 指令。<br>&emsp;&emsp;Android 4.0 源码目录 Dalvik/docs 下的文档 instruction-formats.html 列举了 Dalvik 指令的所有格式，可以通过阅读该文档了解更加完整的 Dalvik 指令信息。</p>
+<h4 id="4、寄存器命名法"><a href="#4、寄存器命名法" class="headerlink" title="4、寄存器命名法"></a>4、寄存器命名法</h4><p>v 命名法与 p 命名法，它们是 Dalvik 字节码的两种寄存器表示方法。</p>
+<br>
+
+<h5 id="v-命名法："><a href="#v-命名法：" class="headerlink" title="v 命名法："></a>v 命名法：</h5><p>假设一个函数使用了 M 个寄存器，且该函数有 N 个参数。根据 Dalvik 虚拟机对参数传递方式的规定，参数使用最后的 N 个寄存器，局部变量使用从 v0 开始的 M - N 个寄存器。在 《 Android 软件安全权威指南》3.1.2 节的实例中，foo() 函数使用了五个寄存器和两个显式的整数参数。该函数是 Hello 类的非静态方法，它在被调用时会传入一个隐式的 Hello 对象引用，因此，实际上传入了三个参数。根据传参规则，局部变量将使用前两个寄存器，参数将使用后三个寄存器。</p>
+<p>采用以小写字母 v 开头的形式表示函数所使用的局部变量与参数，寄存器命名从 v0 开始递增。</p>
+<h5 id="p-命名法："><a href="#p-命名法：" class="headerlink" title="p 命名法："></a>p 命名法：</h5><p>p 命名法对函数的局部变量寄存器命名没有影响，它的命名规则是：函数中引入的参数命名从 p0 开始递增。对于 foo() 函数，p 命名法会使用 v0、v1、p0、p1、p2 五个寄存器，v0 与 v1 同样用于表示函数的局部变量寄存器，p0 用于表示传入的 Hello 对象引用，p1 与 p2 分别用于表示两个传入的整形参数。</p>
+<table>
+<thead>
+<tr>
+<th>v 命名法</th>
+<th>p 命名法</th>
+<th>寄存器含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>v0</td>
+<td>v0</td>
+<td>第 1 个局部变量寄存器</td>
+</tr>
+<tr>
+<td>v1</td>
+<td>v1</td>
+<td>第 2 个局部变量寄存器</td>
+</tr>
+<tr>
+<td>······</td>
+<td>······</td>
+<td>中间的局部变量寄存器递增且名称相同</td>
+</tr>
+<tr>
+<td>v <em>M-N</em></td>
+<td>p0</td>
+<td>第一个参数寄存器</td>
+</tr>
+<tr>
+<td>······</td>
+<td>······</td>
+<td>中间的参数寄存器递增</td>
+</tr>
+<tr>
+<td>v <em>M</em>-1</td>
+<td>p <em>N</em>-1</td>
+<td>第 N 个参数寄存器</td>
+</tr>
+</tbody></table>
+<h4 id="Dalvik-字节码"><a href="#Dalvik-字节码" class="headerlink" title="Dalvik 字节码"></a>Dalvik 字节码</h4><p>1.类型<br>Dalvik 字节码只有两种类型，分别是基本类型和引用类型。Dalvik 使用这两种类型来表示 Java 语言的全部类型。除了对象和数组属于引用对象，其它的 Java 类型都属于基本类型。baksmali 严格遵守 DEX 文件格式类型描述符的定义</p>
+<h5 id="Dalvik-字节码类型描述"><a href="#Dalvik-字节码类型描述" class="headerlink" title="Dalvik 字节码类型描述"></a>Dalvik 字节码类型描述</h5><table>
+<thead>
+<tr>
+<th>语法</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>v</td>
+<td>void，只用于返回值类型</td>
+</tr>
+<tr>
+<td>Z</td>
+<td>boolean</td>
+</tr>
+<tr>
+<td>B</td>
+<td>byte</td>
+</tr>
+<tr>
+<td>S</td>
+<td>short</td>
+</tr>
+<tr>
+<td>C</td>
+<td>char</td>
+</tr>
+<tr>
+<td>I</td>
+<td>int</td>
+</tr>
+<tr>
+<td>J</td>
+<td>long</td>
+</tr>
+<tr>
+<td>F</td>
+<td>float</td>
+</tr>
+<tr>
+<td>D</td>
+<td>double</td>
+</tr>
+<tr>
+<td>L</td>
+<td>Java 类类型</td>
+</tr>
+<tr>
+<td>[</td>
+<td>数组类型</td>
+</tr>
+</tbody></table>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Android-%E9%9D%9E%E8%99%AB-%E9%80%86%E5%90%91-Dalvik/" rel="tag"># Android 非虫 逆向 Dalvik</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/10/29/2019-04-24-mysqldump/" rel="prev" title="MySQL之mysqldump - 备份导出MySQL数据">
+      <i class="fa fa-chevron-left"></i> MySQL之mysqldump - 备份导出MySQL数据
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Dalvik-%E8%99%9A%E6%8B%9F%E6%9C%BA-Android%E9%80%86%E5%90%91"><span class="nav-number">1.</span> <span class="nav-text">Dalvik 虚拟机 - Android逆向</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1%E3%80%81Dalvik-%E8%99%9A%E6%8B%9F%E6%9C%BA%E7%9A%84%E7%89%B9%E7%82%B9"><span class="nav-number">1.1.</span> <span class="nav-text">1、Dalvik 虚拟机的特点</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2%E3%80%81Java-%E8%BD%AC-Dalvik"><span class="nav-number">1.2.</span> <span class="nav-text">2、Java 转 Dalvik</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3%E3%80%81Dalvik-%E6%8C%87%E4%BB%A4%E6%A0%BC%E5%BC%8F"><span class="nav-number">1.3.</span> <span class="nav-text">3、Dalvik 指令格式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4%E3%80%81%E5%AF%84%E5%AD%98%E5%99%A8%E5%91%BD%E5%90%8D%E6%B3%95"><span class="nav-number">1.4.</span> <span class="nav-text">4、寄存器命名法</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#v-%E5%91%BD%E5%90%8D%E6%B3%95%EF%BC%9A"><span class="nav-number">1.4.1.</span> <span class="nav-text">v 命名法：</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#p-%E5%91%BD%E5%90%8D%E6%B3%95%EF%BC%9A"><span class="nav-number">1.4.2.</span> <span class="nav-text">p 命名法：</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Dalvik-%E5%AD%97%E8%8A%82%E7%A0%81"><span class="nav-number">1.5.</span> <span class="nav-text">Dalvik 字节码</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Dalvik-%E5%AD%97%E8%8A%82%E7%A0%81%E7%B1%BB%E5%9E%8B%E6%8F%8F%E8%BF%B0"><span class="nav-number">1.5.1.</span> <span class="nav-text">Dalvik 字节码类型描述</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">John Doe</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">5</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">categories</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">John Doe</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
